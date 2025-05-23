@@ -32,6 +32,17 @@ public class PlayerInput : MonoBehaviour
     // UI related
     [SerializeField] private Slider powerMeterUI;
 
+    // Aiming UI related
+    [SerializeField] private LineRenderer aimingLine;
+    [SerializeField] private Material aimingMaterial;
+    [SerializeField] private Material chargingMaterial;
+    public int linePoints = 10;
+    public float pointSpacing = 0.2f;
+    public float powerHelperValue = 25f;
+
+    public float dotOffset = 2f;
+
+    // Transforms
     [SerializeField] private Transform stickObject;
     [SerializeField] private Transform stickStartingPosition;
     [SerializeField] private Rigidbody stickRigidBody;
@@ -56,6 +67,10 @@ public class PlayerInput : MonoBehaviour
         /// In the future, add function for the player to change the rotation of the stick
         /// 
 
+        aimingLine.material = aimingMaterial;
+        aimingLine.textureMode = LineTextureMode.Tile;
+        aimingLine.material.mainTextureScale = new Vector2(10, 1);
+
     }
 
     private void Update()
@@ -79,6 +94,7 @@ public class PlayerInput : MonoBehaviour
 
         KeyboardAim();
         AdjustPower();
+        UpdateAimingLine();
 
         #endregion
         if (Input.GetKeyDown(KeyCode.R))
@@ -102,14 +118,18 @@ public class PlayerInput : MonoBehaviour
         // Up/Down aim
         if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
         {
-            verticalAngle += rotationSpeed * Time.deltaTime;
+            verticalAngle += rotationSpeed * Time.deltaTime * -1; // Invert
         }
         if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S))
         {
-            verticalAngle -= rotationSpeed * Time.deltaTime;
+            verticalAngle -= rotationSpeed * Time.deltaTime * -1; // Invert
         }
 
-        stickObject.transform.rotation = Quaternion.Euler(verticalAngle, horizontalAngle, 90);
+        // Clamp the angles to prevent unrealistig aiming
+        horizontalAngle = Mathf.Clamp(horizontalAngle, -45f, 45f);
+        verticalAngle = Mathf.Clamp(verticalAngle, -45f, 30f);
+
+        stickObject.transform.rotation = Quaternion.Euler(verticalAngle, horizontalAngle, 0);
 
         Debug.Log($"Horizontal angle = {horizontalAngle}");
         Debug.Log($"Vertical angle = {verticalAngle}");
@@ -151,9 +171,41 @@ public class PlayerInput : MonoBehaviour
         Vector3 throwDirection = aimingRotation * Vector3.forward;
         stickRigidBody.AddForce(throwDirection * currentPower, ForceMode.Impulse);
 
+        //stickRigidBody.AddTorque(new Vector3(0, 0, spinAmount), ForceMode.Impulse); // Add s
+
         Debug.Log($"Stick thrown!");
         Debug.Log($"Direction: {throwDirection}");
         Debug.Log($"Power: {currentPower}");
 
+    }
+
+    private void UpdateAimingLine()
+    {
+        aimingLine.positionCount = linePoints;
+        Vector3 startPosition = stickStartingPosition.position;
+        Quaternion aimRotation = Quaternion.Euler(verticalAngle, horizontalAngle, 0);
+        Vector3 aimDirection;
+
+        if (!isCharging)
+        {
+            aimDirection = aimRotation * Vector3.forward * powerHelperValue; // Use the dummy value for drawing the line when aiming
+            aimingLine.material = aimingMaterial;
+            //aimingLine.material.mainTextureScale = new Vector2(dotOffset, 1);
+            //aimingLine.material.mainTextureOffset = new Vector2(dotOffset, 0);
+            float offset = Time.time * dotOffset;
+            aimingLine.material.mainTextureOffset = new Vector2(offset, 0);
+        }
+        else
+        {
+            aimDirection = aimRotation * Vector3.forward * currentPower; // Use the real power value for drawing the line when charging
+            aimingLine.material = chargingMaterial;
+        }
+
+        for (int i = 0; i < linePoints; i++)
+        {
+            float time = i * pointSpacing;
+            Vector3 point = startPosition + aimDirection * time + 0.5f * Physics.gravity * time * time;
+            aimingLine.SetPosition(i, point);
+        }
     }
 }
