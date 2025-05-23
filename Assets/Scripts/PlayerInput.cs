@@ -129,7 +129,7 @@ public class PlayerInput : MonoBehaviour
         horizontalAngle = Mathf.Clamp(horizontalAngle, -45f, 45f);
         verticalAngle = Mathf.Clamp(verticalAngle, -45f, 30f);
 
-        stickObject.transform.rotation = Quaternion.Euler(verticalAngle, horizontalAngle, 0);
+        stickObject.transform.rotation = Quaternion.Euler(verticalAngle, horizontalAngle, 90f);
 
         Debug.Log($"Horizontal angle = {horizontalAngle}");
         Debug.Log($"Vertical angle = {verticalAngle}");
@@ -147,7 +147,7 @@ public class PlayerInput : MonoBehaviour
 
         if (isCharging)
         {
-            currentPower += chargeSpeed * Time.deltaTime;
+            currentPower += chargeSpeed / 2 * Time.deltaTime;
             currentPower = Mathf.Clamp(currentPower, minPower, maxPower); // Limit max power
             powerMeterUI.value = currentPower;
         }
