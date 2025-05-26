@@ -5,14 +5,20 @@ using UnityEngine;
 public class PinPrefab : MonoBehaviour
 {
 	[SerializeField] private Rigidbody rb;
-	public int pointValue;
+
 	private bool throwStarted = false;
 	[SerializeField] private Transform pinBase;
 
-	//[SerializeField] private float velocityMagnitudeHelper;
-	//[SerializeField] private float angularVelocityMagnitudeHelper;
+    [SerializeField] private int pointValue;
+    public int PointValue
+    {
+        get { return pointValue; }
+    }
 
-	[SerializeField] private bool hasFallen;
+    //[SerializeField] private float velocityMagnitudeHelper;
+    //[SerializeField] private float angularVelocityMagnitudeHelper;
+
+    [SerializeField] private bool hasFallen;
 	public bool HasFallen
 	{
 		get { return hasFallen; }
@@ -86,12 +92,14 @@ public class PinPrefab : MonoBehaviour
 	public void ResetPin()
 	{
         Debug.Log($"RaisePin()");
+        throwStarted = false;
+        hasFallen = false;
+        hasStopped = false;
 
-        Vector3 newPosition = pinBase.position;
-        newPosition.y += 0.01f;
+        Vector3 newPosition = new Vector3(pinBase.position.x, 0.01f, pinBase.position.z);
+        //newPosition.y += 0.02f;
 
         transform.position = newPosition;
         transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
-        hasFallen = false;
     }
 }

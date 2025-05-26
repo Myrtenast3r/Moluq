@@ -18,7 +18,7 @@ public class PlayerInput : MonoBehaviour
     public float minPower = 1.0f;
     public float maxPower = 20f;
     public float chargeSpeed = 20f;
-    private float currentPower;
+    [SerializeField] private float currentPower;
     private bool isCharging = false;
 
     // Aiming related
@@ -131,6 +131,7 @@ public class PlayerInput : MonoBehaviour
 
             stickObject.transform.Rotate(0, 0, 90f); // rotate the stick
             pinController.ResetScene();
+            this.ResetScene();
 
             //Time.timeScale = 1f; // Add the scene reset call
             //SceneManager.LoadScene(0);
@@ -272,6 +273,7 @@ public class PlayerInput : MonoBehaviour
 
     private void ResetScene()
     {
-
+        currentPower = 0;
+        throwStarted = false;
     }
 }

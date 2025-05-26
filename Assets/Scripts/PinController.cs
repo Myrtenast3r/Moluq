@@ -7,6 +7,12 @@ public class PinController : MonoBehaviour
     [SerializeField] private GameObject pinPrefab;
     [SerializeField] private List<PinPrefab> pinPrefabScripts = new List<PinPrefab>();
     [SerializeField] private List<PinPrefab> stoppedPins = new List<PinPrefab>();
+    [SerializeField] private List<PinPrefab> fallenPins = new List<PinPrefab>();
+    public List<PinPrefab> FallenPins
+    {
+        get { return fallenPins; }
+    }
+
     public float timeLimit = 5.0f;
     private float timeSinceThrow = 0f;
 
@@ -55,6 +61,17 @@ public class PinController : MonoBehaviour
             }
         }
 
+        for (int i = 0; i < pinPrefabScripts.Count; i++)
+        {
+            if (pinPrefabScripts[i].HasFallen)
+            {
+                if (!fallenPins.Contains(pinPrefabScripts[i]))
+                {
+                    fallenPins.Add(pinPrefabScripts[i]);
+                }
+            }
+        }
+
         if (stoppedPins.Count == pinPrefabScripts.Count)
         {
             allPinsStopped = true;
@@ -88,6 +105,7 @@ public class PinController : MonoBehaviour
         Time.timeScale = 0f; // Pause the scene
         sceneFrozen = true;
         Debug.Log($"Scene frozen!");
+        ScoreManager.Instance.CalculateScore();
     }
 
     public void ResetScene()
@@ -95,8 +113,10 @@ public class PinController : MonoBehaviour
         foreach (var pin in pinPrefabScripts)
         {
             pin.ResetPin();
-        }    
+        }   
+        
         stoppedPins.Clear();
+        fallenPins.Clear();
 
         Time.timeScale = 1f;
         sceneFrozen = false;
