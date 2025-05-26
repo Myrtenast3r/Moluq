@@ -16,7 +16,7 @@ public class PlayerInput : MonoBehaviour
 
     // Power related
     public float minPower = 1.0f;
-    public float maxPower = 50f;
+    public float maxPower = 20f;
     public float chargeSpeed = 20f;
     private float currentPower;
     private bool isCharging = false;
@@ -47,9 +47,29 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private Transform stickStartingPosition;
     [SerializeField] private Rigidbody stickRigidBody;
 
+    // Other
+    private bool throwStarted;
+    public bool ThrowStarted
+    {
+        get { return throwStarted; }
+    }
+
+    [SerializeField] private bool hasStickStopped = false;
+    public bool HasStickStopped
+    {
+        get { return hasStickStopped; }
+        set { hasStickStopped = value; }
+    }
+
+    [SerializeField] private PinController pinController;
 
     private void Start()
     {
+        if (pinController == null)
+        {
+            pinController = FindAnyObjectByType<PinController>();
+        }
+
         if (stickObject == null)
         {
             Debug.Log($"Stick object null, add handling");
@@ -96,11 +116,26 @@ public class PlayerInput : MonoBehaviour
         AdjustPower();
         UpdateAimingLine();
 
-        #endregion
-        if (Input.GetKeyDown(KeyCode.R))
+        if (throwStarted)
         {
-            SceneManager.LoadScene(0);
+            CheckMovement();
         }
+
+        #endregion
+        if (pinController.SceneFrozen && Input.GetKeyDown(KeyCode.R))
+        {
+            // Reset scene
+            stickRigidBody.isKinematic = true;
+            stickRigidBody.useGravity = false;
+            stickObject.position = stickStartingPosition.position;
+
+            stickObject.transform.Rotate(0, 0, 90f); // rotate the stick
+            pinController.ResetScene();
+
+            //Time.timeScale = 1f; // Add the scene reset call
+            //SceneManager.LoadScene(0);
+        }
+
     }
 
     private void KeyboardAim()
@@ -131,9 +166,6 @@ public class PlayerInput : MonoBehaviour
 
         stickObject.transform.rotation = Quaternion.Euler(verticalAngle, horizontalAngle, 90f);
 
-        Debug.Log($"Horizontal angle = {horizontalAngle}");
-        Debug.Log($"Vertical angle = {verticalAngle}");
-
 
     }
 
@@ -147,7 +179,7 @@ public class PlayerInput : MonoBehaviour
 
         if (isCharging)
         {
-            currentPower += chargeSpeed / 2 * Time.deltaTime;
+            currentPower += (chargeSpeed / 2) * Time.deltaTime;
             currentPower = Mathf.Clamp(currentPower, minPower, maxPower); // Limit max power
             powerMeterUI.value = currentPower;
         }
@@ -161,6 +193,7 @@ public class PlayerInput : MonoBehaviour
 
     private void ThrowStick()
     {
+
         //Rigidbody rb = stickObject.GetComponent<Rigidbody>();
         //rb.AddForce(throwDirection * throwPower, ForceMode.Impulse);
 
@@ -177,6 +210,34 @@ public class PlayerInput : MonoBehaviour
         Debug.Log($"Direction: {throwDirection}");
         Debug.Log($"Power: {currentPower}");
 
+        pinController.StartThrow();
+        StartCoroutine(DelayMovementCheck());
+
+        //Debug.Log($"ThrowStick() end");
+    }
+
+    private IEnumerator DelayMovementCheck()
+    {
+        //Debug.Log($"start coroutine DelayMovementCheck");
+        yield return new WaitForSeconds(0.5f);
+        throwStarted = true;
+        CheckMovement();
+    }
+
+    private void CheckMovement()
+    {
+        //Debug.Log($"CheckMovement() start");
+        //check the pin movement
+        if (stickRigidBody.velocity.magnitude < 0.05f && stickRigidBody.angularVelocity.magnitude < 0.05f)
+        {
+            hasStickStopped = true;
+            //Debug.Log($"Stick stopped moving");
+        }
+        else
+        {
+            hasStickStopped = false;
+            //Debug.Log($"Stick is still moving");
+        }
     }
 
     private void UpdateAimingLine()
@@ -207,5 +268,10 @@ public class PlayerInput : MonoBehaviour
             Vector3 point = startPosition + aimDirection * time + 0.5f * Physics.gravity * time * time;
             aimingLine.SetPosition(i, point);
         }
+    }
+
+    private void ResetScene()
+    {
+
     }
 }
