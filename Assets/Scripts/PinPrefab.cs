@@ -15,6 +15,8 @@ public class PinPrefab : MonoBehaviour
         get { return pointValue; }
     }
 
+    public float spinAmount = 0.3f;
+
     //[SerializeField] private float velocityMagnitudeHelper;
     //[SerializeField] private float angularVelocityMagnitudeHelper;
 
@@ -101,5 +103,21 @@ public class PinPrefab : MonoBehaviour
 
         transform.position = newPosition;
         transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.layer == LayerMask.NameToLayer("GroundLayer"))
+        {
+            return;
+        }
+
+        Vector3 randomTorque = new Vector3(
+            Random.Range(-5f, 5f),
+            Random.Range(-5f, 5f),
+            Random.Range(-5f, 5f)
+            );
+
+        rb.AddTorque(randomTorque, ForceMode.Impulse);
     }
 }

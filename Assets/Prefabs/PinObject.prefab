@@ -95,9 +95,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 893367204203276514}
   serializedVersion: 2
-  m_Mass: 1
+  m_Mass: 0.5
   m_Drag: 0
-  m_AngularDrag: 0.05
+  m_AngularDrag: 0.02
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
@@ -110,7 +110,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 893367204203276514}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 884a6e4fe73ac3e4881c655c997804b7, type: 2}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 4
@@ -129,9 +129,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 538fb8f6d69a9ab468be41b11a98811f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 0}
-  pointValue: 0
+  rb: {fileID: 4771810322805674809}
   pinBase: {fileID: 4658129939724158002}
+  pointValue: 0
   hasFallen: 0
   hasStopped: 0
 --- !u!1 &3699836470578953887

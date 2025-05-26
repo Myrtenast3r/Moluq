@@ -8,6 +8,7 @@ public class ScoreManager : MonoBehaviour
     public static ScoreManager Instance { get; private set; }
 
     [SerializeField] private PinController pinController;
+    [SerializeField] private UIController uiController;
 
     [SerializeField] private int totalScore = 0;
     public int TotalScore
@@ -28,6 +29,10 @@ public class ScoreManager : MonoBehaviour
         if (pinController == null)
         {
             pinController = FindAnyObjectByType<PinController>();
+        }
+        if (uiController == null)
+        {
+            uiController = FindAnyObjectByType<UIController>();
         }
     }
 
@@ -53,6 +58,7 @@ public class ScoreManager : MonoBehaviour
         else
             return;
 
+        uiController.SetTotalScoreText(totalScore);
         Debug.Log($"total score: {totalScore}");
     }
 }
