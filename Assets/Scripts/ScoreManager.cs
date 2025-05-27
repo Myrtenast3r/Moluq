@@ -52,13 +52,13 @@ public class ScoreManager : MonoBehaviour
             foreach (PinPrefab pin in pinController.FallenPins)
             {
                 totalScore += pin.PointValue;
-                Debug.Log($"Added {pin.PointValue} points to total score");
+                //Debug.Log($"Added {pin.PointValue} points to total score");
             }
         }
         else
             return;
 
         uiController.SetTotalScoreText(totalScore);
-        Debug.Log($"total score: {totalScore}");
+        //Debug.Log($"total score: {totalScore}");
     }
 }

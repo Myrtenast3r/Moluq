@@ -93,7 +93,7 @@ public class PinPrefab : MonoBehaviour
 
 	public void ResetPin()
 	{
-        Debug.Log($"RaisePin()");
+        //Debug.Log($"RaisePin()");
         throwStarted = false;
         hasFallen = false;
         hasStopped = false;

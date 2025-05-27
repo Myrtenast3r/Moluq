@@ -132,6 +132,7 @@ MonoBehaviour:
   rb: {fileID: 4771810322805674809}
   pinBase: {fileID: 4658129939724158002}
   pointValue: 0
+  spinAmount: 0.3
   hasFallen: 0
   hasStopped: 0
 --- !u!1 &3699836470578953887

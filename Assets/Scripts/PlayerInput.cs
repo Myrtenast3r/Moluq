@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -19,6 +17,7 @@ public class PlayerInput : MonoBehaviour
     public float maxPower = 20f;
     public float chargeSpeed = 20f;
     [SerializeField] private float currentPower;
+    [SerializeField] private float adjustedPower;
     private bool isCharging = false;
 
     // Aiming related
@@ -38,9 +37,13 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private Material chargingMaterial;
     public int linePoints = 10;
     public float pointSpacing = 0.2f;
-    public float powerHelperValue = 25f;
+    public float powerHelperValue = 10f;
+    public float aimingLineHelperValue = 10f;
 
     public float dotOffset = 2f;
+
+    [SerializeField] private Transform groundMarker;
+    [SerializeField] private Transform lineGroundMarker;
 
     // Transforms
     [SerializeField] private Transform stickObject;
@@ -91,6 +94,8 @@ public class PlayerInput : MonoBehaviour
         aimingLine.textureMode = LineTextureMode.Tile;
         aimingLine.material.mainTextureScale = new Vector2(10, 1);
 
+        groundMarker.position = new Vector3(stickStartingPosition.position.x, 0, stickStartingPosition.position.z);
+
     }
 
     private void Update()
@@ -114,7 +119,8 @@ public class PlayerInput : MonoBehaviour
 
         KeyboardAim();
         AdjustPower();
-        UpdateAimingLine();
+        //UpdateAimingLineStraight();
+        UpdateAimingLineTrajectory();
 
         if (throwStarted)
         {
@@ -145,21 +151,27 @@ public class PlayerInput : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
         {
             horizontalAngle -= rotationSpeed * Time.deltaTime;
+            //Debug.Log($"horizontal angle: {horizontalAngle}");
         }
         if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
         {
             horizontalAngle += rotationSpeed * Time.deltaTime;
+            //Debug.Log($"horizontal angle: {horizontalAngle}");
         }
 
         // Up/Down aim
         if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
         {
             verticalAngle += rotationSpeed * Time.deltaTime * -1; // Invert
+            //Debug.Log($"vertical angle: {verticalAngle}");
         }
         if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S))
         {
             verticalAngle -= rotationSpeed * Time.deltaTime * -1; // Invert
+            //Debug.Log($"vertical angle: {verticalAngle}");
         }
+
+
 
         // Clamp the angles to prevent unrealistig aiming
         horizontalAngle = Mathf.Clamp(horizontalAngle, -45f, 45f);
@@ -180,20 +192,33 @@ public class PlayerInput : MonoBehaviour
 
         if (isCharging)
         {
-            currentPower += (chargeSpeed / 2) * Time.deltaTime;
+            currentPower += chargeSpeed * Time.deltaTime;
             currentPower = Mathf.Clamp(currentPower, minPower, maxPower); // Limit max power
-            powerMeterUI.value = currentPower;
+
+            // Calculate in gravity effect
+            //float angleFactor = Mathf.Cos(Mathf.Deg2Rad * verticalAngle); // Reduce power as angle increases // Linear curve
+            float angleFactor = Mathf.Pow(Mathf.Cos(Mathf.Deg2Rad * verticalAngle), 1.2f); // Reduce power as angle increases // Exponential curve
+            //float angleFactor = 1 - (Mathf.Sin(Mathf.Deg2Rad * verticalAngle) * 0.5f); // Reduce power as angle increases // Custom curve
+            Debug.Log($"angle factor: {angleFactor}");
+            adjustedPower = currentPower * angleFactor;
+
+            Debug.Log($"power difference: {currentPower - adjustedPower}");
+
+            powerMeterUI.value = adjustedPower;
+            UpdateHitMarker();
         }
 
         if (Input.GetKeyUp(KeyCode.Space))
         {
-            isCharging = false;
             ThrowStick();
+            isCharging = false;
         }
     }
 
     private void ThrowStick()
     {
+        aimingLine.gameObject.SetActive(false);
+        lineGroundMarker.gameObject.SetActive(false);
 
         //Rigidbody rb = stickObject.GetComponent<Rigidbody>();
         //rb.AddForce(throwDirection * throwPower, ForceMode.Impulse);
@@ -203,13 +228,15 @@ public class PlayerInput : MonoBehaviour
 
         Quaternion aimingRotation = Quaternion.Euler(verticalAngle, horizontalAngle, 90);
         Vector3 throwDirection = aimingRotation * Vector3.forward;
-        stickRigidBody.AddForce(throwDirection * currentPower, ForceMode.Impulse);
+
+
+        stickRigidBody.AddForce(throwDirection * adjustedPower, ForceMode.Impulse);
 
         //stickRigidBody.AddTorque(new Vector3(0, 0, spinAmount), ForceMode.Impulse); // Add s
 
-        Debug.Log($"Stick thrown!");
+        //Debug.Log($"Stick thrown!");
         Debug.Log($"Direction: {throwDirection}");
-        Debug.Log($"Power: {currentPower}");
+        Debug.Log($"Adjusted power: {adjustedPower}");
 
         pinController.StartThrow();
         StartCoroutine(DelayMovementCheck());
@@ -241,39 +268,106 @@ public class PlayerInput : MonoBehaviour
         }
     }
 
-    private void UpdateAimingLine()
+    #region Aiming line straight version
+    
+    /*
+    private void UpdateAimingLineStraight()
     {
+        aimingLine.positionCount = 2;
+        Vector3 startingPosition = stickStartingPosition.position;
+
+        Vector3 aimingDirection = Quaternion.Euler(verticalAngle, horizontalAngle, 0) * Vector3.forward;
+
+        Vector3 endPosition = startingPosition + aimingDirection * aimingLineHelperValue;
+
+        aimingLine.SetPosition(0, startingPosition);
+        aimingLine.SetPosition(1, endPosition);
+        lineGroundMarker.position = new Vector3(endPosition.x, 0f, endPosition.z);
+    }
+    */
+
+
+    #endregion
+    #region Aiming line trajectory version
+    /// Trajectory aiming version
+
+    
+    private void UpdateAimingLineTrajectory()
+    {
+        if (isCharging)
+        {
+            return;
+        }
         aimingLine.positionCount = linePoints;
         Vector3 startPosition = stickStartingPosition.position;
         Quaternion aimRotation = Quaternion.Euler(verticalAngle, horizontalAngle, 0);
-        Vector3 aimDirection;
+
+        Vector3 aimDirection = aimRotation * Vector3.forward * (isCharging ? adjustedPower : powerHelperValue);
+
+        aimingLine.SetPosition(0, startPosition);
 
         if (!isCharging)
         {
             aimDirection = aimRotation * Vector3.forward * powerHelperValue; // Use the dummy value for drawing the line when aiming
-            aimingLine.material = aimingMaterial;
+            //aimingLine.material = aimingMaterial;
             //aimingLine.material.mainTextureScale = new Vector2(dotOffset, 1);
             //aimingLine.material.mainTextureOffset = new Vector2(dotOffset, 0);
             float offset = Time.time * dotOffset;
             aimingLine.material.mainTextureOffset = new Vector2(offset, 0);
         }
-        else
-        {
-            aimDirection = aimRotation * Vector3.forward * currentPower; // Use the real power value for drawing the line when charging
-            aimingLine.material = chargingMaterial;
-        }
 
-        for (int i = 0; i < linePoints; i++)
+
+        for (int i = 1; i < linePoints; i++)
         {
             float time = i * pointSpacing;
-            Vector3 point = startPosition + aimDirection * time + 0.5f * Physics.gravity * time * time;
+            Vector3 previousPoint = i == 0 ? startPosition : aimingLine.GetPosition(i - 1);
+            Vector3 point = previousPoint + aimDirection * pointSpacing + 0.5f * Physics.gravity * time * time;
+            //aimingLine.SetPosition(i, point);
+            //Debug.DrawRay(startPosition, aimDirection * time, Color.red, 0.1f);
+
+            if (Physics.Raycast(previousPoint, (point - previousPoint).normalized, out RaycastHit hit, (point - previousPoint).magnitude))
+            {
+                //Debug.Log($"Raycast hit {hit.collider.gameObject.name}");
+                aimingLine.SetPosition(i, hit.point);
+                aimingLine.positionCount = i + 1;
+                Debug.DrawRay(startPosition, aimDirection * time, Color.red, 0.1f);
+                return;
+            }
+
             aimingLine.SetPosition(i, point);
+            lineGroundMarker.position = new Vector3(point.x, 0f, point.z);
         }
+
+    }
+    #endregion
+
+    private void UpdateHitMarker()
+    {
+        Vector3 startingPos = new Vector3(stickStartingPosition.position.x, 0, stickStartingPosition.position.z);
+        Vector3 aimingDirection = Quaternion.Euler(verticalAngle, horizontalAngle, 0) * Vector3.forward;
+
+        float gravity = Physics.gravity.y;
+        float stickMass = stickRigidBody.mass;
+        float launchVelocity = (adjustedPower * 0.5f / stickMass);
+
+        // Estimate time to impact
+        float flightTime = Mathf.Sqrt(-2 * startingPos.y / gravity) + (2 * launchVelocity / -gravity);
+
+        // Calculate estimated landing position using projectile physics
+        Vector3 projectedPosition = startingPos + aimingDirection * launchVelocity * flightTime;
+        projectedPosition.y = 0f;
+
+        groundMarker.transform.position = projectedPosition;
+
     }
 
     private void ResetScene()
     {
         currentPower = 0;
+        adjustedPower = 0;
         throwStarted = false;
+        groundMarker.position = new Vector3(stickStartingPosition.position.x, 0, stickStartingPosition.position.z);
+        aimingLine.gameObject.SetActive(true);
+        lineGroundMarker.gameObject.SetActive(true);
     }
 }
