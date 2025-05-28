@@ -6,12 +6,6 @@ using UnityEngine.UI;
 
 public class PlayerInput : MonoBehaviour
 {
-    // Drag and release related
-    //private Vector2 startPos;
-    //private Vector2 endPos;
-    //private Vector2 throwDirection;
-    //private float throwPower;
-
     // Power related
     public float minPower = 1.0f;
     public float maxPower = 20f;
@@ -21,12 +15,9 @@ public class PlayerInput : MonoBehaviour
     private bool isCharging = false;
 
     // Aiming related
-    public float rotationSpeed = 50f;
-    private float horizontalAngle = 0f;
-    private float verticalAngle = 0f;
-
-    //public float powerMultiplier = 1.0f;
-    //public float spinAmount = 0.3f;
+    public float markerMovementSpeed = 50f;
+    [SerializeField] private float horizontalAngle = 0f;
+    [SerializeField] private float verticalAngle = 0f;
 
     // UI related
     [SerializeField] private Slider powerMeterUI;
@@ -37,13 +28,14 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private Material chargingMaterial;
     public int linePoints = 10;
     public float pointSpacing = 0.2f;
-    public float powerHelperValue = 10f;
-    public float aimingLineHelperValue = 10f;
+
+    public float verticalAngleOffset = 5f;
+    public float aimingLineHelperValue = 0.3f;
 
     public float dotOffset = 2f;
 
-    [SerializeField] private Transform groundMarker;
-    [SerializeField] private Transform lineGroundMarker;
+    [SerializeField] private Transform aimingMarker;
+    [SerializeField] private Transform stickLandingMarker;
 
     // Transforms
     [SerializeField] private Transform stickObject;
@@ -51,6 +43,9 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private Rigidbody stickRigidBody;
 
     // Other
+    private bool isAimingSet = false;
+    private bool isAngleSet = false;
+
     private bool throwStarted;
     public bool ThrowStarted
     {
@@ -90,37 +85,26 @@ public class PlayerInput : MonoBehaviour
         /// In the future, add function for the player to change the rotation of the stick
         /// 
 
+        aimingLine.gameObject.SetActive(false);
+
         aimingLine.material = aimingMaterial;
         aimingLine.textureMode = LineTextureMode.Tile;
         aimingLine.material.mainTextureScale = new Vector2(10, 1);
 
-        groundMarker.position = new Vector3(stickStartingPosition.position.x, 0, stickStartingPosition.position.z);
+        stickLandingMarker.position = new Vector3(stickStartingPosition.position.x, 0, stickStartingPosition.position.z);
 
     }
 
     private void Update()
     {
-        #region Drag and Release input
-        //if (Input.GetMouseButtonDown(0))
-        //{
-        //    startPos = Input.mousePosition;
-        //}
-        //if (Input.GetMouseButtonUp(0))
-        //{
-        //    endPos = Input.mousePosition;
-        //    throwDirection = (startPos - endPos).normalized;
-        //    throwPower = (startPos - endPos).magnitude * powerMultiplier;
-
-        //    ThrowStick();
-        //}
-        #endregion
-
         #region Keyboard Input
 
-        KeyboardAim();
-        AdjustPower();
+
+        KeyboardSetAimingSpot();
+        //KeyboardSetAngle();
+        //AdjustPower();
         //UpdateAimingLineStraight();
-        UpdateAimingLineTrajectory();
+        //UpdateAimingLineTrajectory();
 
         if (throwStarted)
         {
@@ -145,45 +129,114 @@ public class PlayerInput : MonoBehaviour
 
     }
 
-    private void KeyboardAim()
+    private void KeyboardSetAimingSpot()
     {
-        // Left/Right aim
-        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
+        if (!isAimingSet)
         {
-            horizontalAngle -= rotationSpeed * Time.deltaTime;
-            //Debug.Log($"horizontal angle: {horizontalAngle}");
+            Vector3 directionToMarker = aimingMarker.position - stickStartingPosition.position;
+            Debug.Log($"directionToMarker: {directionToMarker}");
+
+            // Left/Right aim
+            if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
+            {
+                //horizontalAngle -= rotationSpeed * Time.deltaTime;
+                //Debug.Log($"horizontal angle: {horizontalAngle}");
+                aimingMarker.position += Vector3.left * markerMovementSpeed * Time.deltaTime;
+            }
+            if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
+            {
+                //horizontalAngle += rotationSpeed * Time.deltaTime;
+                //Debug.Log($"horizontal angle: {horizontalAngle}");
+                aimingMarker.position += Vector3.right * markerMovementSpeed * Time.deltaTime;
+            }
+
+            // Up/Down aim
+            if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
+            {
+                //verticalAngle += rotationSpeed * Time.deltaTime; // Invert
+                //Debug.Log($"vertical angle: {verticalAngle}");
+                aimingMarker.position += Vector3.forward * markerMovementSpeed * Time.deltaTime;
+
+            }
+            if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S))
+            {
+                //verticalAngle -= rotationSpeed * Time.deltaTime; // Invert
+                //Debug.Log($"vertical angle: {verticalAngle}");
+                aimingMarker.position += Vector3.back * markerMovementSpeed * Time.deltaTime;
+            }
+
+            horizontalAngle = Mathf.Atan2(directionToMarker.x, directionToMarker.z) * Mathf.Rad2Deg;
+            verticalAngle = Mathf.Atan2(directionToMarker.y, directionToMarker.magnitude) * Mathf.Rad2Deg;
+
+            horizontalAngle = Mathf.Clamp(horizontalAngle, -45f, 45f);
+            verticalAngle = Mathf.Clamp(verticalAngle, -45f, 30f);
+
+            stickObject.transform.rotation = Quaternion.Euler(verticalAngle, horizontalAngle, 90f);
+
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                Debug.Log($"Aiming set!");
+                isAimingSet = true;
+                return;
+            }
         }
-        if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
+
+        if (isAimingSet)
         {
-            horizontalAngle += rotationSpeed * Time.deltaTime;
-            //Debug.Log($"horizontal angle: {horizontalAngle}");
+            aimingLine.gameObject.SetActive(true);
+            KeyboardSetAngle();
         }
+    }
 
-        // Up/Down aim
-        if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
+    private void KeyboardSetAngle()
+    {
+        if (!isAngleSet)
         {
-            verticalAngle += rotationSpeed * Time.deltaTime * -1; // Invert
-            //Debug.Log($"vertical angle: {verticalAngle}");
+            Vector3 directionToMarker = aimingMarker.position - stickStartingPosition.position;
+            Debug.Log($"directionToMarker: {directionToMarker}");
+
+            // Up/Down aim
+            if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
+            {
+                verticalAngle -= verticalAngleOffset * Time.deltaTime; // Invert
+                //Debug.Log($"vertical angle: {verticalAngle}");
+            }
+            if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S))
+            {
+                verticalAngle += verticalAngleOffset * Time.deltaTime; // Invert
+                //Debug.Log($"vertical angle: {verticalAngle}");
+            }
+
+            // Clamp the angles to prevent unrealistig aiming
+            //verticalAngle = Mathf.Atan2(directionToMarker.y, directionToMarker.magnitude) * Mathf.Rad2Deg;
+            verticalAngle = Mathf.Clamp(verticalAngle, -45f, 30f);
+
+            stickObject.transform.rotation = Quaternion.Euler(verticalAngle, horizontalAngle, 90f);
+
+            UpdateAimingLineTrajectory();
+
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                Debug.Log($"Angle set!");
+                isAngleSet = true;
+            }
+            return;
         }
-        if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S))
+        if (isAngleSet && Input.GetKeyDown(KeyCode.Space))
         {
-            verticalAngle -= rotationSpeed * Time.deltaTime * -1; // Invert
-            //Debug.Log($"vertical angle: {verticalAngle}");
+            isCharging = true;
         }
-
-
-
-        // Clamp the angles to prevent unrealistig aiming
-        horizontalAngle = Mathf.Clamp(horizontalAngle, -45f, 45f);
-        verticalAngle = Mathf.Clamp(verticalAngle, -45f, 30f);
-
-        stickObject.transform.rotation = Quaternion.Euler(verticalAngle, horizontalAngle, 90f);
-
+        if (isCharging)
+        {
+            AdjustPower();
+        }
 
     }
 
     private void AdjustPower()
     {
+        if (!isCharging) { return; }
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
             isCharging = true;
@@ -192,17 +245,18 @@ public class PlayerInput : MonoBehaviour
 
         if (isCharging)
         {
-            currentPower += chargeSpeed * Time.deltaTime;
+            currentPower += (chargeSpeed / 2) * Time.deltaTime * Mathf.Pow(currentPower, 0.5f); // Pow
+            //currentPower += chargeSpeed * Time.deltaTime * Mathf.Log(currentPower + 1, 2); // Log
             currentPower = Mathf.Clamp(currentPower, minPower, maxPower); // Limit max power
 
             // Calculate in gravity effect
             //float angleFactor = Mathf.Cos(Mathf.Deg2Rad * verticalAngle); // Reduce power as angle increases // Linear curve
-            float angleFactor = Mathf.Pow(Mathf.Cos(Mathf.Deg2Rad * verticalAngle), 1.2f); // Reduce power as angle increases // Exponential curve
+            float angleFactor = Mathf.Pow(Mathf.Cos(Mathf.Deg2Rad * verticalAngle), 1.5f); // Reduce power as angle increases // Exponential curve
             //float angleFactor = 1 - (Mathf.Sin(Mathf.Deg2Rad * verticalAngle) * 0.5f); // Reduce power as angle increases // Custom curve
-            Debug.Log($"angle factor: {angleFactor}");
+            //Debug.Log($"angle factor: {angleFactor}");
             adjustedPower = currentPower * angleFactor;
 
-            Debug.Log($"power difference: {currentPower - adjustedPower}");
+            //Debug.Log($"power difference: {currentPower - adjustedPower}");
 
             powerMeterUI.value = adjustedPower;
             UpdateHitMarker();
@@ -218,7 +272,7 @@ public class PlayerInput : MonoBehaviour
     private void ThrowStick()
     {
         aimingLine.gameObject.SetActive(false);
-        lineGroundMarker.gameObject.SetActive(false);
+        aimingMarker.gameObject.SetActive(false);
 
         //Rigidbody rb = stickObject.GetComponent<Rigidbody>();
         //rb.AddForce(throwDirection * throwPower, ForceMode.Impulse);
@@ -234,7 +288,7 @@ public class PlayerInput : MonoBehaviour
 
         //stickRigidBody.AddTorque(new Vector3(0, 0, spinAmount), ForceMode.Impulse); // Add s
 
-        //Debug.Log($"Stick thrown!");
+        Debug.Log($"Stick thrown!");
         Debug.Log($"Direction: {throwDirection}");
         Debug.Log($"Adjusted power: {adjustedPower}");
 
@@ -298,76 +352,75 @@ public class PlayerInput : MonoBehaviour
         {
             return;
         }
+
         aimingLine.positionCount = linePoints;
         Vector3 startPosition = stickStartingPosition.position;
-        Quaternion aimRotation = Quaternion.Euler(verticalAngle, horizontalAngle, 0);
+        Vector3 endPosition = aimingMarker.position;
 
-        Vector3 aimDirection = aimRotation * Vector3.forward * (isCharging ? adjustedPower : powerHelperValue);
+        // Define control point to create curve based on the aiming angle
+        Vector3 controlPoint = (startPosition + endPosition) / 2; // Mid point
+        controlPoint.y += verticalAngle * -1 * aimingLineHelperValue; // add helper value if necessary
 
-        aimingLine.SetPosition(0, startPosition);
-
-        if (!isCharging)
+        for (int i = 0; i < linePoints; i++)
         {
-            aimDirection = aimRotation * Vector3.forward * powerHelperValue; // Use the dummy value for drawing the line when aiming
-            //aimingLine.material = aimingMaterial;
-            //aimingLine.material.mainTextureScale = new Vector2(dotOffset, 1);
-            //aimingLine.material.mainTextureOffset = new Vector2(dotOffset, 0);
-            float offset = Time.time * dotOffset;
-            aimingLine.material.mainTextureOffset = new Vector2(offset, 0);
-        }
-
-
-        for (int i = 1; i < linePoints; i++)
-        {
-            float time = i * pointSpacing;
-            Vector3 previousPoint = i == 0 ? startPosition : aimingLine.GetPosition(i - 1);
-            Vector3 point = previousPoint + aimDirection * pointSpacing + 0.5f * Physics.gravity * time * time;
-            //aimingLine.SetPosition(i, point);
-            //Debug.DrawRay(startPosition, aimDirection * time, Color.red, 0.1f);
-
-            if (Physics.Raycast(previousPoint, (point - previousPoint).normalized, out RaycastHit hit, (point - previousPoint).magnitude))
-            {
-                //Debug.Log($"Raycast hit {hit.collider.gameObject.name}");
-                aimingLine.SetPosition(i, hit.point);
-                aimingLine.positionCount = i + 1;
-                Debug.DrawRay(startPosition, aimDirection * time, Color.red, 0.1f);
-                return;
-            }
-
-            aimingLine.SetPosition(i, point);
-            lineGroundMarker.position = new Vector3(point.x, 0f, point.z);
+            float t = i / (float)(linePoints - 1); // Normalize between 0 and 1
+            Vector3 curvedPoint = QuadraticBezier(startPosition, controlPoint, endPosition, t);
+            aimingLine.SetPosition(i, curvedPoint);
         }
 
     }
     #endregion
+
+    private Vector3 QuadraticBezier(Vector3 p0, Vector3 p1, Vector3 p2, float t)
+    {
+        return (1 - t) * (1 - t) * p0 + 2 * (1 - t) * t * p1 + t * t * p2;
+    }
 
     private void UpdateHitMarker()
     {
         Vector3 startingPos = new Vector3(stickStartingPosition.position.x, 0, stickStartingPosition.position.z);
         Vector3 aimingDirection = Quaternion.Euler(verticalAngle, horizontalAngle, 0) * Vector3.forward;
 
-        float gravity = Physics.gravity.y;
+        Debug.Log($"UpdateHitMarker aiming direction: {aimingDirection}");
+
+        //float gravity = Physics.gravity.y;
         float stickMass = stickRigidBody.mass;
-        float launchVelocity = (adjustedPower * 0.5f / stickMass);
+        float launchVelocity = adjustedPower * stickMass;
 
         // Estimate time to impact
-        float flightTime = Mathf.Sqrt(-2 * startingPos.y / gravity) + (2 * launchVelocity / -gravity);
+        //float flightTime = Mathf.Sqrt(-2 * startingPos.y / gravity) + (2 * launchVelocity / -gravity);
+        float flightTime = CalculateFlightTime();
 
         // Calculate estimated landing position using projectile physics
         Vector3 projectedPosition = startingPos + aimingDirection * launchVelocity * flightTime;
+        //Debug.Log($"UpdateHitMarker startingPos + aimingDirection: {startingPos + aimingDirection}");
         projectedPosition.y = 0f;
 
-        groundMarker.transform.position = projectedPosition;
+        stickLandingMarker.transform.position = projectedPosition;
 
     }
+
+    float CalculateFlightTime()
+    {
+        float gravity = Mathf.Abs(Physics.gravity.y);
+        float verticalVelocity = adjustedPower * Mathf.Sin(Mathf.Deg2Rad * verticalAngle);
+
+        float timeToPeak = verticalVelocity / gravity;  // Time to reach highest point
+        float totalTime = timeToPeak * 2f;  // Double for full arc landing
+
+        return totalTime;
+    }
+
 
     private void ResetScene()
     {
         currentPower = 0;
         adjustedPower = 0;
         throwStarted = false;
-        groundMarker.position = new Vector3(stickStartingPosition.position.x, 0, stickStartingPosition.position.z);
+        isAimingSet = false;
+        isAngleSet = false;
+        stickLandingMarker.position = new Vector3(stickStartingPosition.position.x, 0, stickStartingPosition.position.z);
         aimingLine.gameObject.SetActive(true);
-        lineGroundMarker.gameObject.SetActive(true);
+        aimingMarker.gameObject.SetActive(true);
     }
 }

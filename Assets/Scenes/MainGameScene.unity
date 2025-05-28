@@ -307,21 +307,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minPower: 1
   maxPower: 50
-  chargeSpeed: 10
+  chargeSpeed: 5
   currentPower: 0
   adjustedPower: 0
-  rotationSpeed: 15
+  markerMovementSpeed: 2
+  horizontalAngle: 0
+  verticalAngle: 0
   powerMeterUI: {fileID: 702039318}
   aimingLine: {fileID: 1827881069}
   aimingMaterial: {fileID: 2100000, guid: 2775d2bd812a505458749bc6d77725c1, type: 2}
   chargingMaterial: {fileID: 2100000, guid: 3d11c8b41dc3034439681f7f93ba299f, type: 2}
   linePoints: 10
   pointSpacing: 0.1
-  powerHelperValue: 10
-  aimingLineHelperValue: 5
+  verticalAngleOffset: 10
+  aimingLineHelperValue: 0.05
   dotOffset: -2
-  groundMarker: {fileID: 1014628549}
-  lineGroundMarker: {fileID: 226817850}
+  aimingMarker: {fileID: 226817850}
+  stickLandingMarker: {fileID: 1014628549}
   stickObject: {fileID: 486906457}
   stickStartingPosition: {fileID: 273726841}
   stickRigidBody: {fileID: 486906461}
@@ -337,7 +339,7 @@ GameObject:
   m_Component:
   - component: {fileID: 226817850}
   m_Layer: 0
-  m_Name: LineGroundMarker
+  m_Name: AimingSpotMarker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1317,7 +1319,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1014628549}
   m_Layer: 0
-  m_Name: HitMarker
+  m_Name: StickLandingMarker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
