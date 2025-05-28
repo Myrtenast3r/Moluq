@@ -306,8 +306,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   minPower: 1
-  maxPower: 50
+  maxPower: 15
   chargeSpeed: 5
+  powerDamperValue: 0.85
   currentPower: 0
   adjustedPower: 0
   markerMovementSpeed: 2
@@ -315,18 +316,16 @@ MonoBehaviour:
   verticalAngle: 0
   powerMeterUI: {fileID: 702039318}
   aimingLine: {fileID: 1827881069}
-  aimingMaterial: {fileID: 2100000, guid: 2775d2bd812a505458749bc6d77725c1, type: 2}
-  chargingMaterial: {fileID: 2100000, guid: 3d11c8b41dc3034439681f7f93ba299f, type: 2}
   linePoints: 10
   pointSpacing: 0.1
-  verticalAngleOffset: 10
+  verticalAngleAmount: 5
   aimingLineHelperValue: 0.05
   dotOffset: -2
-  aimingMarker: {fileID: 226817850}
-  stickLandingMarker: {fileID: 1014628549}
   stickObject: {fileID: 486906457}
   stickStartingPosition: {fileID: 273726841}
   stickRigidBody: {fileID: 486906461}
+  aimingMarker: {fileID: 226817850}
+  stickLandingMarker: {fileID: 1014628549}
   hasStickStopped: 0
   pinController: {fileID: 0}
 --- !u!1 &226817849
@@ -530,7 +529,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 360167858}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 9bb10ad808b7c0640915903d0a247083, type: 2}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
@@ -896,7 +895,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 931707016}
   m_Direction: 0
   m_MinValue: 1
-  m_MaxValue: 20
+  m_MaxValue: 15
   m_WholeNumbers: 1
   m_Value: 1
   m_OnValueChanged:
@@ -1975,7 +1974,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 3d11c8b41dc3034439681f7f93ba299f, type: 2}
+  - {fileID: 2100000, guid: 2775d2bd812a505458749bc6d77725c1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2538,6 +2537,10 @@ PrefabInstance:
     - target: {fileID: 7024248662448981503, guid: 2bd68c17a9f29a84eada102d30c1459e, type: 3}
       propertyPath: m_Name
       value: PinStartPosition
+      objectReference: {fileID: 0}
+    - target: {fileID: 8511730653429605769, guid: 2bd68c17a9f29a84eada102d30c1459e, type: 3}
+      propertyPath: timeLimit
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2bd68c17a9f29a84eada102d30c1459e, type: 3}

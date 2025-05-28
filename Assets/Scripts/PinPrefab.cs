@@ -17,9 +17,6 @@ public class PinPrefab : MonoBehaviour
 
     public float spinAmount = 0.3f;
 
-    //[SerializeField] private float velocityMagnitudeHelper;
-    //[SerializeField] private float angularVelocityMagnitudeHelper;
-
     [SerializeField] private bool hasFallen;
 	public bool HasFallen
 	{
@@ -53,8 +50,6 @@ public class PinPrefab : MonoBehaviour
 			hasFallen = true;
 		}
 
-		//velocityMagnitudeHelper = rb.velocity.magnitude;
-		//angularVelocityMagnitudeHelper = rb.angularVelocity.magnitude;
 		if (throwStarted)
 		{
 			CheckMovement();
@@ -80,6 +75,8 @@ public class PinPrefab : MonoBehaviour
 
 	private void CheckMovement()
 	{
+        LimitPinRolling();
+
         //check the pin movement
         if (rb.velocity.magnitude < 0.05f && rb.angularVelocity.magnitude < 0.05f)
         {
@@ -93,13 +90,11 @@ public class PinPrefab : MonoBehaviour
 
 	public void ResetPin()
 	{
-        //Debug.Log($"RaisePin()");
         throwStarted = false;
         hasFallen = false;
         hasStopped = false;
 
         Vector3 newPosition = new Vector3(pinBase.position.x, 0.01f, pinBase.position.z);
-        //newPosition.y += 0.02f;
 
         transform.position = newPosition;
         transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
@@ -119,5 +114,17 @@ public class PinPrefab : MonoBehaviour
             );
 
         rb.AddTorque(randomTorque, ForceMode.Impulse);
+    }
+
+    private void LimitPinRolling()
+    {
+        if (hasFallen)
+        {
+            if (rb.velocity.magnitude < 0.2f)
+            {
+                rb.velocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+        }
     }
 }

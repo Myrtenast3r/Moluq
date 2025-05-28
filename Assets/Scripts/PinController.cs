@@ -13,7 +13,7 @@ public class PinController : MonoBehaviour
         get { return fallenPins; }
     }
 
-    public float timeLimit = 5.0f;
+    public float timeLimit = 3.0f;
     private float timeSinceThrow = 0f;
 
     private bool sceneFrozen = false;
@@ -75,13 +75,11 @@ public class PinController : MonoBehaviour
         if (stoppedPins.Count == pinPrefabScripts.Count)
         {
             allPinsStopped = true;
-            //Debug.Log("All pins stopped");
         }
 
         //If all pins stopped, freeze the scene immideately
         if (allPinsStopped && playerInputScript.HasStickStopped)
         {
-            //Debug.Log($"All pins and stick stopped moving");
             FreezeScene();
         }
 
@@ -90,11 +88,9 @@ public class PinController : MonoBehaviour
         {
             // Track time 
             timeSinceThrow += Time.deltaTime;
-            //Debug.Log($"timeSinceThrow: {timeSinceThrow}");
 
             if (timeSinceThrow >= timeLimit)
             {
-                //Debug.Log($"Time limit exceeded");
                 FreezeScene();
             }
         }
@@ -104,7 +100,6 @@ public class PinController : MonoBehaviour
     {
         Time.timeScale = 0f; // Pause the scene
         sceneFrozen = true;
-        //Debug.Log($"Scene frozen!");
         ScoreManager.Instance.CalculateScore();
     }
 
