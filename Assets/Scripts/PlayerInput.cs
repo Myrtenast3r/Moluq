@@ -93,10 +93,10 @@ public class PlayerInput : MonoBehaviour
     {
         KeyboardSetAimingSpot();
 
-        if (throwStarted)
-        {
-            CheckMovement();
-        }
+        //if (throwStarted)
+        //{
+        //    CheckMovement();
+        //}
 
         if (pinController.SceneFrozen && Input.GetKeyDown(KeyCode.R))
         {
@@ -263,20 +263,20 @@ public class PlayerInput : MonoBehaviour
     {
         yield return new WaitForSeconds(0.5f);
         throwStarted = true;
-        CheckMovement();
+        //CheckMovement();
     }
 
-    private void CheckMovement()
-    {
-        if (stickRigidBody.velocity.magnitude < 0.05f && stickRigidBody.angularVelocity.magnitude < 0.05f)
-        {
-            hasStickStopped = true;
-        }
-        else
-        {
-            hasStickStopped = false;
-        }
-    }
+    //private void CheckMovement()
+    //{
+    //    if (stickRigidBody.velocity.magnitude < 0.05f && stickRigidBody.angularVelocity.magnitude < 0.05f)
+    //    {
+    //        hasStickStopped = true;
+    //    }
+    //    else
+    //    {
+    //        hasStickStopped = false;
+    //    }
+    //}
     
     private void UpdateAimingLineTrajectory()
     {

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PinPrefab : MonoBehaviour
@@ -15,7 +16,10 @@ public class PinPrefab : MonoBehaviour
         get { return pointValue; }
     }
 
-    public float spinAmount = 0.3f;
+    //public float spinAmount = 0.3f;
+
+    public float spacingOffset = 0.01f;
+    public float minSpacingRadius = 0.025f;
 
     [SerializeField] private bool hasFallen;
 	public bool HasFallen
@@ -90,14 +94,23 @@ public class PinPrefab : MonoBehaviour
 
 	public void ResetPin()
 	{
+        if (hasFallen)
+        {
+           // Debug.Log($"Adjusting spacing for fallen pin {this.transform.parent.name}");
+            AdjustPinSpacing();
+        }
+        else
+        {
+            Vector3 newPosition = new Vector3(pinBase.position.x, 0.01f, pinBase.position.z);
+
+            transform.position = newPosition;
+        }
+
+        transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
+
         throwStarted = false;
         hasFallen = false;
         hasStopped = false;
-
-        Vector3 newPosition = new Vector3(pinBase.position.x, 0.01f, pinBase.position.z);
-
-        transform.position = newPosition;
-        transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -126,5 +139,44 @@ public class PinPrefab : MonoBehaviour
                 rb.angularVelocity = Vector3.zero;
             }
         }
+    }
+
+    private void AdjustPinSpacing()
+    {
+        Collider[] overlappingPins = Physics.OverlapSphere(transform.position, minSpacingRadius);
+        int overlappingCount = overlappingPins.Count(collider => collider.gameObject != this && collider.gameObject.tag != "Stick");
+
+        //if (overlappingCount == 0) 
+        //{
+        //    Debug.Log($"No overlapping pins, reset position without adjusting");
+        //    transform.position = new Vector3(pinBase.position.x, 0.01f, pinBase.position.z);
+        //}
+        //else
+        //{
+
+        //}
+        //Debug.Log($"Overlapping colliders {overlappingCount}, adjusting position for {this.transform.parent.name}");
+        Vector3 bestDirection = Vector3.zero;
+        float maxOpenSpace = 0f;
+
+        // Analyze the surrounding area in multiple directions
+        Vector3[] possibleDirections = { Vector3.left, Vector3.right, Vector3.forward, Vector3.back };
+
+        foreach (Vector3 direction in possibleDirections)
+        {
+            Vector3 testPosition = transform.position + (direction * spacingOffset);
+            int nearbyCount = Physics.OverlapSphere(testPosition, minSpacingRadius).Length;
+
+            // Find the direction with the least nearby collisions
+            if (nearbyCount < maxOpenSpace)
+            {
+                maxOpenSpace = nearbyCount;
+                bestDirection = direction;
+            }
+
+            // Move the pin toward the most open space
+            transform.position += bestDirection * spacingOffset;
+        }
+        //transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
     }
 }
