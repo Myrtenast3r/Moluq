@@ -1,0 +1,36 @@
+//1. (Physics related)
+- Finish the pin re-position fix 
+// Done 06/02
+
+2. (UI related)
+- Add UI for the pins showing their score value
+	Floating panel?
+	UI in the pin itself?
+
+3. (Game rule logic related)
+- Add logic:
+	1. If three consecutive misses, game over
+	2. If points go over 50, reduce points back to 25
+	3. If points are exactly 50, win
+	4. Reset the score (scene) after win
+
+4. (UI related)
+- Rotate the pins so that the number always faces the player
+
+5. (UI related)
+- Add UI notification when the scene freezes and button for reset
+
+6. (UI related)
+- Add UI panel for showing the amount of consecutive misses (red crosses etc.)
+
+7. (Additional features)
+- Add function for the player to rotate the stick 90 degrees
+
+8. (Sound related)
+- Add sounds
+	1. Wooden clacking sound when the pins or stick hit each other
+	2. Sound when the pins or stick hits the ground
+	3. Power charging sound
+	4. Stick throwing sound
+	5. UI pop-up panel sound
+	6. Background sounds (birds, winds etc.)
