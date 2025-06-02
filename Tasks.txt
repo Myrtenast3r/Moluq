@@ -1,5 +1,6 @@
-1. (Physics related)
-- Finish the pin re-position fix
+//1. (Physics related)
+- Finish the pin re-position fix 
+// Done 06/02
 
 2. (UI related)
 - Add UI for the pins showing their score value
