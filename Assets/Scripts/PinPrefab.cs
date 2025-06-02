@@ -16,10 +16,10 @@ public class PinPrefab : MonoBehaviour
         get { return pointValue; }
     }
 
-    //public float spinAmount = 0.3f;
-
     public float spacingOffset = 0.01f;
     public float minSpacingRadius = 0.025f;
+
+    public float positioningTime = 2.0f;
 
     [SerializeField] private bool hasFallen;
 	public bool HasFallen
@@ -94,19 +94,26 @@ public class PinPrefab : MonoBehaviour
 
 	public void ResetPin()
 	{
+        // Disable collider during lerping to avoid unexpected behaviour!! 
+        MeshCollider collider = GetComponent<MeshCollider>();
+        collider.enabled = false;
+
+        rb.useGravity = false;
+
         if (hasFallen)
         {
-           // Debug.Log($"Adjusting spacing for fallen pin {this.transform.parent.name}");
             AdjustPinSpacing();
         }
         else
         {
-            Vector3 newPosition = new Vector3(pinBase.position.x, 0.01f, pinBase.position.z);
-
-            transform.position = newPosition;
+            Vector3 newPosition = new Vector3(pinBase.position.x, 0.11f, pinBase.position.z);
+            StartCoroutine(InterpolatePosition(transform.position, newPosition, positioningTime));
         }
 
         transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
+
+        collider.enabled = true;
+        rb.useGravity = true;
 
         throwStarted = false;
         hasFallen = false;
@@ -143,24 +150,12 @@ public class PinPrefab : MonoBehaviour
 
     private void AdjustPinSpacing()
     {
+        Vector3 bestDirection = Vector3.zero;
+        float maxOpenSpace = float.MaxValue;
+        Vector3[] possibleDirections = { Vector3.left, Vector3.right, Vector3.forward, Vector3.back };
+
         Collider[] overlappingPins = Physics.OverlapSphere(transform.position, minSpacingRadius);
         int overlappingCount = overlappingPins.Count(collider => collider.gameObject != this && collider.gameObject.tag != "Stick");
-
-        //if (overlappingCount == 0) 
-        //{
-        //    Debug.Log($"No overlapping pins, reset position without adjusting");
-        //    transform.position = new Vector3(pinBase.position.x, 0.01f, pinBase.position.z);
-        //}
-        //else
-        //{
-
-        //}
-        //Debug.Log($"Overlapping colliders {overlappingCount}, adjusting position for {this.transform.parent.name}");
-        Vector3 bestDirection = Vector3.zero;
-        float maxOpenSpace = 0f;
-
-        // Analyze the surrounding area in multiple directions
-        Vector3[] possibleDirections = { Vector3.left, Vector3.right, Vector3.forward, Vector3.back };
 
         foreach (Vector3 direction in possibleDirections)
         {
@@ -173,10 +168,22 @@ public class PinPrefab : MonoBehaviour
                 maxOpenSpace = nearbyCount;
                 bestDirection = direction;
             }
-
-            // Move the pin toward the most open space
-            transform.position += bestDirection * spacingOffset;
         }
-        //transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
+
+        Vector3 newPosition = transform.position + bestDirection * spacingOffset;
+        StartCoroutine(InterpolatePosition(transform.position, new Vector3(newPosition.x, 0.11f, newPosition.z), positioningTime));
+
+    }
+
+    private IEnumerator InterpolatePosition(Vector3 start, Vector3 end, float duration)
+    {
+        float elapsedTime = 0f;
+        while (elapsedTime < duration)
+        {
+            transform.position = Vector3.Lerp(start, end, elapsedTime / duration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        transform.position = end;
     }
 }

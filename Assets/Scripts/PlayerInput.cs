@@ -100,6 +100,7 @@ public class PlayerInput : MonoBehaviour
 
         if (pinController.SceneFrozen && Input.GetKeyDown(KeyCode.R))
         {
+            Time.timeScale = 1.0f;
             // Reset scene
             stickRigidBody.isKinematic = true;
             stickRigidBody.useGravity = false;
@@ -249,6 +250,7 @@ public class PlayerInput : MonoBehaviour
 
         stickRigidBody.isKinematic = false; // Enable physics
         stickRigidBody.useGravity = true;
+        stickRigidBody.collisionDetectionMode = CollisionDetectionMode.Continuous;
 
         Quaternion aimingRotation = Quaternion.Euler(verticalAngle, horizontalAngle, 90);
         Vector3 throwDirection = aimingRotation * Vector3.forward;
@@ -265,18 +267,6 @@ public class PlayerInput : MonoBehaviour
         throwStarted = true;
         //CheckMovement();
     }
-
-    //private void CheckMovement()
-    //{
-    //    if (stickRigidBody.velocity.magnitude < 0.05f && stickRigidBody.angularVelocity.magnitude < 0.05f)
-    //    {
-    //        hasStickStopped = true;
-    //    }
-    //    else
-    //    {
-    //        hasStickStopped = false;
-    //    }
-    //}
     
     private void UpdateAimingLineTrajectory()
     {
@@ -350,5 +340,6 @@ public class PlayerInput : MonoBehaviour
         stickLandingMarker.gameObject.SetActive(true);
         aimingLine.gameObject.SetActive(true);
         aimingMarker.gameObject.SetActive(true);
+        stickRigidBody.collisionDetectionMode = CollisionDetectionMode.Discrete;
     }
 }
