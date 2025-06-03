@@ -19,8 +19,9 @@
 - Rotate the pins so that the number always faces the player
 // Done 6/3
 
-5. (UI related)
+//5. (UI related)
 - Add UI notification when the scene freezes and button for reset
+// Done 6/3
 
 6. (UI related)
 - Add UI panel for showing the amount of consecutive misses (red crosses etc.)

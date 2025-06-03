@@ -15,6 +15,13 @@ public class ScoreManager : MonoBehaviour
     {
         get { return totalScore; }
     }
+    [SerializeField] private int currentRoundScore = 0;
+
+    private bool isSceneFrozen = false;
+    public bool IsSceneFrozen
+    {
+        get { return isSceneFrozen; }
+    }
 
     private void Awake()
     {
@@ -41,22 +48,30 @@ public class ScoreManager : MonoBehaviour
         Instance = null;
     }
 
-    public void CalculateScore()
+    public void CalculateTotalScore()
     {
         if (pinController.FallenPins.Count > 1)
         {
-            totalScore += pinController.FallenPins.Count;
+            currentRoundScore += pinController.FallenPins.Count;
         }
         else if (pinController.FallenPins.Count == 1)
         {
             foreach (PinPrefab pin in pinController.FallenPins)
             {
-                totalScore += pin.PointValue;
+                currentRoundScore += pin.PointValue;
             }
         }
         else
             return;
 
-        uiController.SetTotalScoreText(totalScore);
+        totalScore += currentRoundScore;
+        uiController.SetSceneFreeze(currentRoundScore, totalScore);
     }
+
+    public void ResetUi()
+    {
+        currentRoundScore = 0;
+        uiController.SetResetUi();
+    }
+
 }
