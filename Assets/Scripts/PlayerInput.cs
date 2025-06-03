@@ -88,7 +88,7 @@ public class PlayerInput : MonoBehaviour
 
         stickLandingMarker.position = new Vector3(stickStartingPosition.position.x, 0, stickStartingPosition.position.z);
 
-        resetButton.onClick.AddListener(OnResetButtonClicked);
+        //resetButton.onClick.AddListener(OnResetButtonClicked);
 
     }
 
@@ -328,7 +328,7 @@ public class PlayerInput : MonoBehaviour
         stickRigidBody.collisionDetectionMode = CollisionDetectionMode.Discrete;
     }
 
-    private void OnResetButtonClicked()
+    public void ResetSceneFromUI()
     {
         if (pinController.SceneFrozen)
         {

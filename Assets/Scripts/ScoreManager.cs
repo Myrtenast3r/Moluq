@@ -10,10 +10,12 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] private PinController pinController;
     [SerializeField] private UIController uiController;
 
+    [SerializeField] public int missCounter = 0;
     [SerializeField] private int totalScore = 0;
     public int TotalScore
     {
         get { return totalScore; }
+        set { totalScore = value; }
     }
     [SerializeField] private int currentRoundScore = 0;
 
@@ -53,6 +55,7 @@ public class ScoreManager : MonoBehaviour
         if (pinController.FallenPins.Count > 1)
         {
             currentRoundScore += pinController.FallenPins.Count;
+            missCounter = 0;
         }
         else if (pinController.FallenPins.Count == 1)
         {
@@ -60,10 +63,22 @@ public class ScoreManager : MonoBehaviour
             {
                 currentRoundScore += pin.PointValue;
             }
+            missCounter = 0;
+        }
+        else
+        {
+            missCounter++;
         }
 
         totalScore += currentRoundScore;
-        uiController.SetSceneFreeze(currentRoundScore, totalScore);
+
+        uiController.SetSceneFreeze(currentRoundScore, totalScore, missCounter);
+
+        if (totalScore > 50)
+        {
+            totalScore = 25;
+        }
+
     }
 
     public void ResetUi()
