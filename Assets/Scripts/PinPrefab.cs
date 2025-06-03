@@ -221,10 +221,17 @@ public class PinPrefab : MonoBehaviour
 
     private void SetPointUI()
     {
-        Vector3 uiPosition = transform.position + new Vector3(0, 0.5f, 0f);
+        float distanceFromCamera = Vector3.Distance(mainCam.transform.position, transform.position);
+        float heightOffset = Mathf.Clamp(distanceFromCamera * 0.15f, 0.3f, 2f);
+
+        Vector3 uiPosition = transform.position + new Vector3(0, heightOffset, 0f);
         pointCanvas.transform.position = uiPosition;
-        //Debug.DrawRay(uiPosition, mainCam.transform.position);
-        pointCanvas.transform.LookAt(mainCam.transform);
+
+        Vector3 direction = mainCam.transform.position - pointCanvas.transform.position;
+        direction.y = 0f;
+        direction *= -1f; // Flip so that it faces the camera
+
+        pointCanvas.transform.rotation = Quaternion.LookRotation(direction);
 
         if (uilineRenderer != null && pointCanvas != null)
         {
