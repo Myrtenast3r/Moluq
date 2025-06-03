@@ -61,8 +61,6 @@ public class ScoreManager : MonoBehaviour
                 currentRoundScore += pin.PointValue;
             }
         }
-        else
-            return;
 
         totalScore += currentRoundScore;
         uiController.SetSceneFreeze(currentRoundScore, totalScore);
