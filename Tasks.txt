@@ -2,10 +2,11 @@
 - Finish the pin re-position fix 
 // Done 06/02
 
-2. (UI related)
+//2. (UI related)
 - Add UI for the pins showing their score value
 	Floating panel?
 	UI in the pin itself?
+// Done 6/3
 
 3. (Game rule logic related)
 - Add logic:
@@ -14,8 +15,9 @@
 	3. If points are exactly 50, win
 	4. Reset the score (scene) after win
 
-4. (UI related)
+//4. (UI related)
 - Rotate the pins so that the number always faces the player
+// Done 6/3
 
 5. (UI related)
 - Add UI notification when the scene freezes and button for reset

@@ -2,25 +2,33 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using TMPro;
 
 public class PinPrefab : MonoBehaviour
 {
+    [Header("Physics")]
 	[SerializeField] private Rigidbody rb;
-
-	private bool throwStarted = false;
 	[SerializeField] private Transform pinBase;
+    [SerializeField] private MeshCollider pinCollider;
+    private Camera mainCam;
 
+    [Header("UI related")]
+    [SerializeField] private Canvas pointCanvas;
+    [SerializeField] private TextMeshProUGUI pointText;
+    private LineRenderer uilineRenderer;
+
+    [Header("Public variables")]
+    public float spacingOffset = 0.01f;
+    public float minSpacingRadius = 0.025f;
+    public float positioningTime = 0.5f;
     [SerializeField] private int pointValue;
     public int PointValue
     {
         get { return pointValue; }
     }
 
-    public float spacingOffset = 0.01f;
-    public float minSpacingRadius = 0.025f;
-
-    public float positioningTime = 2.0f;
-
+    [Header("Booleans")]
+    private bool throwStarted = false;
     [SerializeField] private bool hasFallen;
 	public bool HasFallen
 	{
@@ -40,7 +48,20 @@ public class PinPrefab : MonoBehaviour
 		if (rb == null)
 		{
             rb = GetComponent<Rigidbody>();
-        } 
+        }
+
+        mainCam = Camera.main;
+        pinCollider = GetComponent<MeshCollider>();
+
+
+        uilineRenderer = gameObject.AddComponent<LineRenderer>();
+        uilineRenderer.positionCount = 2;
+        uilineRenderer.startWidth = 0.02f;
+        uilineRenderer.endWidth = 0.02f;
+        uilineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+
+        pointText.SetText(pointValue.ToString());
+        SetPointUI();
     }
 
     private void Update()
@@ -58,6 +79,11 @@ public class PinPrefab : MonoBehaviour
 		{
 			CheckMovement();
 		}
+    }
+
+    private void LateUpdate()
+    {
+        SetPointUI();
     }
 
     public void SetPointValue(int value)
@@ -95,11 +121,13 @@ public class PinPrefab : MonoBehaviour
 	public void ResetPin()
 	{
         // Disable collider during lerping to avoid unexpected behaviour!! 
-        MeshCollider collider = GetComponent<MeshCollider>();
-        collider.enabled = false;
+        //MeshCollider collider = GetComponent<MeshCollider>();
+        //collider.enabled = false;
+        pinCollider.enabled = false;
 
         rb.useGravity = false;
 
+        Debug.Log($"resetting pins");
         if (hasFallen)
         {
             AdjustPinSpacing();
@@ -112,8 +140,9 @@ public class PinPrefab : MonoBehaviour
 
         transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
 
-        collider.enabled = true;
-        rb.useGravity = true;
+        //collider.enabled = true;
+        //pinCollider.enabled = true;
+        //rb.useGravity = true;
 
         throwStarted = false;
         hasFallen = false;
@@ -185,5 +214,29 @@ public class PinPrefab : MonoBehaviour
             yield return null;
         }
         transform.position = end;
+        pinCollider.enabled = true;
+        rb.useGravity = true;
+        //Debug.Log($"resetting pins done");
+    }
+
+    private void SetPointUI()
+    {
+        float distanceFromCamera = Vector3.Distance(mainCam.transform.position, transform.position);
+        float heightOffset = Mathf.Clamp(distanceFromCamera * 0.15f, 0.3f, 2f);
+
+        Vector3 uiPosition = transform.position + new Vector3(0, heightOffset, 0f);
+        pointCanvas.transform.position = uiPosition;
+
+        Vector3 direction = mainCam.transform.position - pointCanvas.transform.position;
+        direction.y = 0f;
+        direction *= -1f; // Flip so that it faces the camera
+
+        pointCanvas.transform.rotation = Quaternion.LookRotation(direction);
+
+        if (uilineRenderer != null && pointCanvas != null)
+        {
+            uilineRenderer.SetPosition(0, this.transform.position);
+            uilineRenderer.SetPosition(1, pointCanvas.transform.position);
+        }
     }
 }
