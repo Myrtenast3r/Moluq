@@ -100,7 +100,7 @@ public class PinController : MonoBehaviour
     {
         Time.timeScale = 0f; // Pause the scene
         sceneFrozen = true;
-        ScoreManager.Instance.CalculateScore();
+        ScoreManager.Instance.CalculateTotalScore();
     }
 
     public void ResetScene()

@@ -22,6 +22,7 @@ public class PlayerInput : MonoBehaviour
 
     // UI related
     [SerializeField] private Slider powerMeterUI;
+    [SerializeField] private Button resetButton;
 
     // Aiming UI related
     [SerializeField] private LineRenderer aimingLine;
@@ -87,29 +88,13 @@ public class PlayerInput : MonoBehaviour
 
         stickLandingMarker.position = new Vector3(stickStartingPosition.position.x, 0, stickStartingPosition.position.z);
 
+        //resetButton.onClick.AddListener(OnResetButtonClicked);
+
     }
 
     private void Update()
     {
         KeyboardSetAimingSpot();
-
-        //if (throwStarted)
-        //{
-        //    CheckMovement();
-        //}
-
-        if (pinController.SceneFrozen && Input.GetKeyDown(KeyCode.R))
-        {
-            Time.timeScale = 1.0f;
-            // Reset scene
-            stickRigidBody.isKinematic = true;
-            stickRigidBody.useGravity = false;
-            stickObject.position = stickStartingPosition.position;
-
-            stickObject.transform.Rotate(0, 0, 90f); // rotate the stick
-            pinController.ResetScene();
-            this.ResetScene();
-        }
     }
 
     private void KeyboardSetAimingSpot()
@@ -341,5 +326,22 @@ public class PlayerInput : MonoBehaviour
         aimingLine.gameObject.SetActive(true);
         aimingMarker.gameObject.SetActive(true);
         stickRigidBody.collisionDetectionMode = CollisionDetectionMode.Discrete;
+    }
+
+    public void ResetSceneFromUI()
+    {
+        if (pinController.SceneFrozen)
+        {
+            Time.timeScale = 1.0f;
+            // Reset scene
+            stickRigidBody.isKinematic = true;
+            stickRigidBody.useGravity = false;
+            stickObject.position = stickStartingPosition.position;
+
+            stickObject.transform.Rotate(0, 0, 90f); // rotate the stick
+            pinController.ResetScene();
+            this.ResetScene();
+            ScoreManager.Instance.ResetUi();
+        }
     }
 }

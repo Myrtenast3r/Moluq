@@ -10,10 +10,19 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] private PinController pinController;
     [SerializeField] private UIController uiController;
 
+    [SerializeField] public int missCounter = 0;
     [SerializeField] private int totalScore = 0;
     public int TotalScore
     {
         get { return totalScore; }
+        set { totalScore = value; }
+    }
+    [SerializeField] private int currentRoundScore = 0;
+
+    private bool isSceneFrozen = false;
+    public bool IsSceneFrozen
+    {
+        get { return isSceneFrozen; }
     }
 
     private void Awake()
@@ -41,22 +50,41 @@ public class ScoreManager : MonoBehaviour
         Instance = null;
     }
 
-    public void CalculateScore()
+    public void CalculateTotalScore()
     {
         if (pinController.FallenPins.Count > 1)
         {
-            totalScore += pinController.FallenPins.Count;
+            currentRoundScore += pinController.FallenPins.Count;
+            missCounter = 0;
         }
         else if (pinController.FallenPins.Count == 1)
         {
             foreach (PinPrefab pin in pinController.FallenPins)
             {
-                totalScore += pin.PointValue;
+                currentRoundScore += pin.PointValue;
             }
+            missCounter = 0;
         }
         else
-            return;
+        {
+            missCounter++;
+        }
 
-        uiController.SetTotalScoreText(totalScore);
+        totalScore += currentRoundScore;
+
+        uiController.SetSceneFreeze(currentRoundScore, totalScore, missCounter);
+
+        if (totalScore > 50)
+        {
+            totalScore = 25;
+        }
+
     }
+
+    public void ResetUi()
+    {
+        currentRoundScore = 0;
+        uiController.SetResetUi();
+    }
+
 }
