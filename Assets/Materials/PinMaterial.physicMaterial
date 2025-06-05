@@ -7,7 +7,7 @@ PhysicMaterial:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: PinMaterial
-  dynamicFriction: 0.39
+  dynamicFriction: 0.5
   staticFriction: 0.56
   bounciness: 0.89
   frictionCombine: 0

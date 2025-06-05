@@ -36,7 +36,7 @@ public class PinPrefab : MonoBehaviour
 		set { hasFallen = value; }
 	}
 
-	[SerializeField] private bool hasStopped;
+    [SerializeField] private bool hasStopped = false;
 	public bool HasStopped
 	{
 		get { return hasStopped; }
@@ -98,7 +98,7 @@ public class PinPrefab : MonoBehaviour
 
 	private IEnumerator DelayMovementCheck()
 	{
-		yield return new WaitForSeconds(0.5f);
+		yield return new WaitForSeconds(2.0f);
 		throwStarted = true;
 		CheckMovement();
 	}
@@ -107,27 +107,33 @@ public class PinPrefab : MonoBehaviour
 	{
         LimitPinRolling();
 
-        //check the pin movement
+        if (hasStopped)
+        {
+            return;
+        }
+
+        // Limit the minuscule movement
+        if (rb.velocity.magnitude > 0.05f && rb.velocity.magnitude < 0.1f)
+        {
+            float lerpFactor = 0.05f;
+            rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, lerpFactor * Time.deltaTime);
+            rb.angularVelocity = Vector3.Lerp(rb.angularVelocity, Vector3.zero, lerpFactor * Time.deltaTime);
+        }
+
+        //check the pin movement and stop
         if (rb.velocity.magnitude < 0.05f && rb.angularVelocity.magnitude < 0.05f)
         {
             hasStopped = true;
-        }
-        else
-        {
-            hasStopped = false;
+            rb.velocity = Vector3.zero; 
+            rb.angularVelocity = Vector3.zero;
         }
     }
 
 	public void ResetPin()
 	{
-        // Disable collider during lerping to avoid unexpected behaviour!! 
-        //MeshCollider collider = GetComponent<MeshCollider>();
-        //collider.enabled = false;
         pinCollider.enabled = false;
-
         rb.useGravity = false;
 
-        Debug.Log($"resetting pins");
         if (hasFallen)
         {
             AdjustPinSpacing();
@@ -139,10 +145,6 @@ public class PinPrefab : MonoBehaviour
         }
 
         transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
-
-        //collider.enabled = true;
-        //pinCollider.enabled = true;
-        //rb.useGravity = true;
 
         throwStarted = false;
         hasFallen = false;
@@ -169,11 +171,11 @@ public class PinPrefab : MonoBehaviour
     {
         if (hasFallen)
         {
-            if (rb.velocity.magnitude < 0.2f)
-            {
-                rb.velocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
-            }
+            Vector3 centerOfMass = rb.centerOfMass;
+            rb.centerOfMass = new Vector3(0, -0.1f, 0);
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.centerOfMass = centerOfMass;
         }
     }
 
@@ -216,7 +218,6 @@ public class PinPrefab : MonoBehaviour
         transform.position = end;
         pinCollider.enabled = true;
         rb.useGravity = true;
-        //Debug.Log($"resetting pins done");
     }
 
     private void SetPointUI()
