@@ -70,9 +70,10 @@ public class PinPrefab : MonoBehaviour
 			return;
 		}
 
-		if (transform.up.y < 0.1f)
+		if (transform.up.y < 0.1f && !hasFallen)
 		{
 			hasFallen = true;
+            AudioManager.instance.PlayPinHitGround(); 
 		}
 
 		if (throwStarted)
@@ -127,7 +128,6 @@ public class PinPrefab : MonoBehaviour
 
         rb.useGravity = false;
 
-        Debug.Log($"resetting pins");
         if (hasFallen)
         {
             AdjustPinSpacing();
@@ -151,22 +151,11 @@ public class PinPrefab : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.layer == LayerMask.NameToLayer("GroundLayer"))
-        {
-            if (hasFallen)
-            {
-                Debug.Log($"Pin hit ground");
-                AudioManager.instance.PlayPinHitGround();
-            }
-
-            return;
-        }
 
         if (collision.gameObject.CompareTag("Pin"))
         {
             if (hasFallen)
             {
-                Debug.Log($"Pin hit pin");
                 AudioManager.instance.PlayWoodHitWood();
             }
         }
