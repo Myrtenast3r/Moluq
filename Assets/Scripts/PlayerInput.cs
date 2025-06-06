@@ -49,13 +49,6 @@ public class PlayerInput : MonoBehaviour
         get { return throwStarted; }
     }
 
-    [SerializeField] private bool hasStickStopped = false;
-    public bool HasStickStopped
-    {
-        get { return hasStickStopped; }
-        set { hasStickStopped = value; }
-    }
-
     [SerializeField] private PinController pinController;
 
     private void Start()
@@ -87,8 +80,6 @@ public class PlayerInput : MonoBehaviour
         aimingLine.material.mainTextureScale = new Vector2(10, 1);
 
         stickLandingMarker.position = new Vector3(stickStartingPosition.position.x, 0, stickStartingPosition.position.z);
-
-        //resetButton.onClick.AddListener(OnResetButtonClicked);
 
     }
 

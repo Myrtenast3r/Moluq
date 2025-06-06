@@ -14,7 +14,6 @@ public class PinController : MonoBehaviour
     }
 
     public float timeLimit = 3.0f;
-    private float timeSinceThrow = 0f;
 
     private bool sceneFrozen = false;
     public bool SceneFrozen
@@ -48,8 +47,6 @@ public class PinController : MonoBehaviour
             return;
         }
 
-        bool allPinsStopped = false;
-
         foreach (PinPrefab pin in pinPrefabScripts)
         {
             if (pin.HasStopped)
@@ -72,24 +69,10 @@ public class PinController : MonoBehaviour
             }
         }
 
-        if (stoppedPins.Count == pinPrefabScripts.Count)
-        {
-            allPinsStopped = true;
-        }
-
-        //If all pins stopped, freeze the scene immideately
-        if (allPinsStopped && playerInputScript.HasStickStopped)
-        {
-            FreezeScene();
-        }
-
         // If movement occurs after time limit. force freeze
         if (playerInputScript.ThrowStarted)
         {
-            // Track time 
-            timeSinceThrow += Time.deltaTime;
-
-            if (timeSinceThrow >= timeLimit)
+            if (stoppedPins.Count == pinPrefabScripts.Count)
             {
                 FreezeScene();
             }
@@ -115,7 +98,7 @@ public class PinController : MonoBehaviour
 
         Time.timeScale = 1f;
         sceneFrozen = false;
-        timeSinceThrow = 0f;
+        //timeSinceThrow = 0f;
     }
 
     public void StartThrow()
