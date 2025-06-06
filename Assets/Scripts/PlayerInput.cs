@@ -198,6 +198,8 @@ public class PlayerInput : MonoBehaviour
 
         if (isCharging)
         {
+            AudioManager.instance.PlayChargePower();
+
             currentPower += (chargeSpeed / 2) * Time.deltaTime * Mathf.Pow(currentPower, 0.5f); // Pow
             currentPower = Mathf.Clamp(currentPower, minPower, maxPower); // Limit max power
 
@@ -213,6 +215,7 @@ public class PlayerInput : MonoBehaviour
 
         if (Input.GetKeyUp(KeyCode.Space))
         {
+            AudioManager.instance.StopChargePower();
             ThrowStick();
             isCharging = false;
         }
@@ -220,6 +223,8 @@ public class PlayerInput : MonoBehaviour
 
     private void ThrowStick()
     {
+        AudioManager.instance.PlayThrowStick();
+
         aimingLine.gameObject.SetActive(false);
         aimingMarker.gameObject.SetActive(false);
         stickLandingMarker.gameObject.SetActive(false);
