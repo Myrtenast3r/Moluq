@@ -70,9 +70,10 @@ public class PinPrefab : MonoBehaviour
 			return;
 		}
 
-		if (transform.up.y < 0.1f)
+		if (transform.up.y < 0.1f && !hasFallen)
 		{
 			hasFallen = true;
+            AudioManager.instance.PlayPinHitGround(); 
 		}
 
 		if (throwStarted)
@@ -153,9 +154,13 @@ public class PinPrefab : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.layer == LayerMask.NameToLayer("GroundLayer"))
+
+        if (collision.gameObject.CompareTag("Pin"))
         {
-            return;
+            if (hasFallen)
+            {
+                AudioManager.instance.PlayWoodHitWood();
+            }
         }
 
         Vector3 randomTorque = new Vector3(
@@ -165,6 +170,7 @@ public class PinPrefab : MonoBehaviour
             );
 
         rb.AddTorque(randomTorque, ForceMode.Impulse);
+
     }
 
     private void LimitPinRolling()
